@@ -6,6 +6,15 @@ import urllib2, string, os, shutil
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Matt McDade
+# This program downloads news.ycombinator.com "Who's Hiring" posts
+# and analyzes the usage of popular programming languages to see
+# what are the most in-demand languages to young companies
+
+# In the future, this program will display the change of each language
+# over time to track the pop
+
+
 # ---------------------------------------------------------
 # Download pages goes through the url text file to download
 #      recent copies of the corresponding html files
@@ -23,7 +32,6 @@ def download_pages():
         try:
             if os.path.isfile(file_path):
                 os.unlink(file_path)
-            #elif os.path.isdir(file_path): shutil.rmtree(file_path)
         except Exception as e:
             print(e)
 
@@ -35,7 +43,7 @@ def download_pages():
         soup = BeautifulSoup(response.read(), 'html.parser')
         with open(filename, 'w') as file:
             file.write(str(soup))
-
+        print '.',
     print 'Done!'
 
 
@@ -45,24 +53,30 @@ def download_pages():
 # ---------------------------------------------------------------------------
 def plot():
     # plot the information
-    index = np.arange(len(sorted_list.keys()))
-    plt.bar(index, sorted_list.values())
-    plt.xlabel('Language', fontsize=5)
-    plt.ylabel('Count', fontsize=5)
-    plt.xticks(index, sorted_list.keys(), fontsize=10, rotation=90)
+    index = np.arange(len(counts.keys()))
+    plt.bar(index, counts.values())
+    plt.xlabel('Language', fontsize=15)
+    plt.ylabel('Count', fontsize=15)
+    plt.xticks(index, counts.keys(), fontsize=10, rotation=80)
     plt.title('Usage of Programming Language words in Hacker News Posts')
+    plt.tight_layout() # Automagically sets boundaries to be tight af
     plt.show()
+
 
 
 # ---------------------
 # Start of Main Routine
 # ---------------------
 
+# Assign initial variables -
+# folder = directory of html files,
+# url_list_file = pretty self-explanatory
+# counts = dictionary language and number of times seen
+# languages = list of all languages to look for and plot
 folder = 'pages'
 url_list_file = open('url_list.txt', 'r')
-sorted_list = dict()
 counts = dict()
-languages=[ 'python',
+languages = [ 'python',
             'javascript',
             'react',
             'c++',
@@ -92,33 +106,30 @@ languages=[ 'python',
             'node.js',
             'rails']
 
+
 # Ask to download pages or not
 answer = raw_input('Download new files? (y/n) ')
 if answer == 'y':
     download_pages()
 
 print 'Finding languages...'
-# Loop through file for urls, print some comments from it
 for the_file in os.listdir(folder):
     with open('pages\\'+the_file, 'r') as f:
         soup = BeautifulSoup(f.read(), 'html.parser')
 
+        # Looking through the html files, I found all the comments are span tags with class c00
         comments = soup.find_all("span", class_="c00")
         for comment in comments:
             text = comment.p.get_text().encode('utf-8')
-            for word in text.split():
-                lw = word.lower()
-                if lw.rstrip('.') in languages:
-                    if lw in counts:
+            for word in text.split():             # Loop through every word in the comment.
+                lw = word.lower().strip('.')      # Change word to lower case, and remove any periods.
+                if lw in languages:               # If word exists in languages, continue.
+                    if lw in counts:              # If the language exists in the dictionary, increment it.
                         counts[lw] += 1
-                    else:
+                    else:                         # If it doesnt, add a new key with value 1.
                         counts[lw] = 1
-    print '.',
-print 'Sorting...'
+    print '.', # Print a dot every time it finishes
+               # an html file before looping again
 
-for key, value in sorted(counts.iteritems(), key=lambda (k,v): (v,k)):
-    sorted_list[key] = value
-
-
-print 'Plotting...'
+print '\nPlotting...'
 plot()
