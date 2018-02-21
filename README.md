@@ -12,7 +12,9 @@ Once you have cloned the project, change your directory to the root of the proje
 Execute the following commands:
 
 'pip install beautifulsoup4'
+
 'pip install matplotlib'
+
 'pip install numpy'
 
 From the root directory, create a folder titled ***pages***. Leave this blank for now, the program will populate it later.
